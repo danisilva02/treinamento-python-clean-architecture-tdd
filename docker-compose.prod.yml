@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: ${ECR_REPO_URL}:${IMAGE_TAG}
+    platform: linux/arm64
