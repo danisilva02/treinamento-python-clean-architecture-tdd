@@ -1,3 +1,6 @@
+.vscode/*
+deploy.sh
+.env
 poetry.lock
 .user.yml
 package-lock.yml

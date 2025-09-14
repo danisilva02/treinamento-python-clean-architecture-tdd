@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from .presentation import health
 from .presentation import routers
 from dotenv import load_dotenv
-import awsgi
 import uvicorn
 load_dotenv()
 
@@ -35,13 +34,6 @@ app.add_middleware(
 
 app.include_router(health.router, prefix="/health", tags=["Health"])
 app.include_router(routers.router, prefix="/user")
-
-def handler(event, context):
-    event['httpMethod'] = event['requestContext']['http']['method']
-    event['path'] = event['requestContext']['http']['path']
-    event['queryStringParameters'] = event.get('queryStringParameters', {})
-
-    return awsgi.response(app, event, context)
 
 if __name__ == "__main__":
     uvicorn.run(app=app, host="0.0.0.0", port=5000)
