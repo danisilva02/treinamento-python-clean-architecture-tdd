@@ -1,57 +1,65 @@
-name: (Python API) - Terraform Deploy
+name: Python API CD
 
 on:
   push:
     branches: 
       - master
 
-permissions:
-  id-token: write
-  contents: read
-  pull-requests: write
-
 env:
-  TF_LOG: INFO
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_REGION: us-east-1
+  PROJECT_NAME: ${{ vars.PROJECT_NAME }}
+  PLATFORM: ${{ vars.PLATFORM }}
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_ECR_REGISTRY: ${{ vars.AWS_ECR_REGISTRY }}
+  IMAGE_TAG: ${{ github.sha }}
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
+    name: CD build and deploy
+    runs-on: ubuntu-latest-arm64
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+      - name: 🏗 Checkout Monorepo
+        uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
+      - name: 🛠️ Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Install Docker Compose
-      run: |
-        sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        sudo chmod +x /usr/local/bin/docker-compose
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-buildx-${{ env.PROJECT_NAME }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-${{ env.PROJECT_NAME }}
 
-    - name: Login to Amazon ECR
-      id: ecr-login
-      uses: aws-actions/amazon-ecr-login@v1
+      - name: 🔑 Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.PROD_AWS_EKS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PROD_AWS_EKS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-    - name: Set Up Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.8.5
+      - name: 🔐 Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Initialize Terraform
-      run: |
-        cd infrastructure/stages/prod
-        terraform init -var-file=variables.tfvars -upgrade
+      - name: Create AWS ECR repository if not exists
+        uses: uspacy/aws-ecr-action@v1
+        with:
+          repositoryName: ${{ env.PROJECT_NAME }}
+          countNumber: 3
 
-    - name: Plan Terraform
-      run: |
-        cd infrastructure/stages/prod
-        terraform plan -var-file=variables.tfvars
-
-    - name: Apply Terraform Changes
-      run: |
-        cd infrastructure/stages/prod
-        terraform apply -var-file=variables.tfvars -auto-approve
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        env:
+          AWS_ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        with:
+          target: release
+          platforms: ${{ env.PLATFORM }}
+          tags: ${{ env.AWS_ECR_REGISTRY }}/${{ env.PROJECT_NAME }}:${{ env.IMAGE_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+          push: true
