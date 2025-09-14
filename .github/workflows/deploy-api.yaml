@@ -43,15 +43,15 @@ jobs:
 
     - name: Initialize Terraform
       run: |
-        cd infrastructure/stages/prod/api
+        cd infrastructure/stages/prod
         terraform init -var-file=variables.tfvars -upgrade
 
     - name: Plan Terraform
       run: |
-        cd infrastructure/stages/prod/api
+        cd infrastructure/stages/prod
         terraform plan -var-file=variables.tfvars
 
     - name: Apply Terraform Changes
       run: |
-        cd infrastructure/stages/prod/api
+        cd infrastructure/stages/prod
         terraform apply -var-file=variables.tfvars -auto-approve
