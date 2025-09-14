@@ -19,16 +19,22 @@ Ao final, você terá construído uma API simples, rodando com PostgreSQL e cobe
 
 ### Estrutura do Projeto
 
+Ao jogar no readme essa estrutura aqui, não fica formatado corretamente. 
+
+Directory structure:
+```
 project/
-├── src/                   # Código principal da aplicação
-│   ├── core/              # Configurações e utilitários
-│   ├── domain/            # Entidades e casos de uso (regra de negócio)
-│   ├── infra/             # Banco de dados, repositórios e integrações 
-│   ├── presentation/      # Interfaces de entrada/saída (ex: FastAPI)
-│   └── tests/             # Testes unitários e de integração
-├── pyproject.toml         # Configuração do Poetry
-├── docker-compose.yml     # Subida do PostgreSQL
-└── Makefile               # Automação de comandos
+├── src/                               # Código principal da aplicação
+│   ├── core/                          # Configurações e utilitários
+│   ├── domain/                        # Entidades e casos de uso (regra de negócio)
+│   ├── infra/                         # Banco de dados, repositórios e integrações 
+│   ├── presentation/                  # Interfaces de entrada/saída (ex.: FastAPI)
+│   └── tests/                         # Testes unitários e de integração
+├── pyproject.toml                     # Configuração do Poetry
+├── docker-compose.yml                 # Subida do PostgreSQL
+└── Makefile                           # Automação de comandos
+```
+ 
 
 ### Comandos Básicos
 
