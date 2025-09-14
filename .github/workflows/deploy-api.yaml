@@ -1,44 +1,37 @@
-name: Python API CD
+name: Deploy - Treinamento Python Clean Architecture + TDD
 
 on:
   push:
-    branches: 
-      - master
-
-env:
-  PROJECT_NAME: ${{ vars.PROJECT_NAME }}
-  PLATFORM: ${{ vars.PLATFORM }}
-  AWS_REGION: ${{ vars.AWS_REGION }}
-  AWS_ECR_REGISTRY: ${{ vars.AWS_ECR_REGISTRY }}
-  IMAGE_TAG: ${{ github.sha }}
+    branches: [ master ]
 
 jobs:
   build:
-    name: CD build and deploy
     runs-on: ubuntu-latest-arm64
+    name: Deploy to ${{ github.event.inputs.environment }}
+    env:
+      TF_LOG: INFO
+      PROJECT_NAME: ${{ vars.PROJECT_NAME }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY:  ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      AWS_ECR_REGISTRY: ${{ vars.AWS_ECR_REGISTRY }}
+    
     steps:
-      - name: 🏗 Checkout Monorepo
+      - name: 📂 Checkout repository
         uses: actions/checkout@v4
+
+      - name: 🧑‍🏭 Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: 🛠️ Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-buildx-${{ env.PROJECT_NAME }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-${{ env.PROJECT_NAME }}
-
       - name: 🔑 Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.PROD_AWS_EKS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.PROD_AWS_EKS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: 🔐 Login to Amazon ECR
         id: ecr-login
@@ -47,19 +40,18 @@ jobs:
       - name: Create AWS ECR repository if not exists
         uses: uspacy/aws-ecr-action@v1
         with:
-          repositoryName: ${{ env.PROJECT_NAME }}
-          countNumber: 3
+          repositoryName: ${{ vars.AWS_ECR_REGISTRY }}
+          countNumber: 2
+          countType: "imageCountMoreThan"
 
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        env:
-          AWS_ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
-          IMAGE_TAG: ${{ env.IMAGE_TAG }}
-        with:
-          target: release
-          platforms: ${{ env.PLATFORM }}
-          tags: ${{ env.AWS_ECR_REGISTRY }}/${{ env.PROJECT_NAME }}:${{ env.IMAGE_TAG }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          provenance: false
-          push: true
+      - name: Determine TAG_VERSION
+        id: tag_version
+        run: echo "TAG_VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: 🏗️ Build, tag, and push image to ECR
+        run: |
+          echo "Building image for repository: ${{ steps.ecr-login.outputs.registry }}/${{ vars.AWS_ECR_REGISTRY }}:latest"
+          docker buildx build --platform linux/arm64 \
+            -t ${{ steps.ecr-login.outputs.registry }}/${{ vars.AWS_ECR_REGISTRY }}:latest \
+            -t ${{ steps.ecr-login.outputs.registry }}/${{ vars.AWS_ECR_REGISTRY }}:$TAG_VERSION \
+            --push . 
