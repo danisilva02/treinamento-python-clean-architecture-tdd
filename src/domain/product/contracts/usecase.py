@@ -16,3 +16,8 @@ class UsecaseProductUpdateContract(ABC):
     @abstractmethod
     def perform(self, product: ProductUpdateInputDTO) -> tuple[DomainError, ProductOutputDTO]:
         pass
+    
+class UsecaseProductDeleteContract(ABC):
+    @abstractmethod
+    def perform(self, id: str) -> tuple[DomainError, bool]:
+        pass

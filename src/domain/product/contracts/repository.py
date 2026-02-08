@@ -27,3 +27,7 @@ class ProductRepositoryContract(ABC):
     @abstractmethod
     def update(self, product: ProductEntity) -> tuple[DomainError, ProductEntity]:
         pass
+    
+    @abstractmethod
+    def delete(self, id: str) -> tuple[DomainError, bool]:
+        pass

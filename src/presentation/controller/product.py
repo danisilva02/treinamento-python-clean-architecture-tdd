@@ -6,6 +6,7 @@ from src.domain.product.usecase_create import UseCaseProductCreate, ProductCreat
 from src.domain.product.usecase_update import UsecaseProductUpdate, ProductUpdateInputDTO
 from src.domain.product.usecase_list import UsecaseProductList, ProductListInputDTO
 from src.domain.product.usecase_get import UsecaseProductGet, ProductGetInputDTO
+from src.domain.product.usecase_delete import UsecaseProductDelete
 
 # Infra
 from src.infra.repository.product.repo import ProductRepo
@@ -23,7 +24,11 @@ from src.presentation.contract.product import (
     PresentationProductGetResponseDTO,
 )
 
-def controller_create_product(driver: DriverContract, product: PresentationProductCreateRequestDTO, user_id: str) -> tuple[DomainError, PresentationProductCreateResponseDTO]:
+def controller_create_product(
+    driver: DriverContract,
+    product: PresentationProductCreateRequestDTO,
+    user_id: str
+) -> tuple[DomainError, PresentationProductCreateResponseDTO]:
     product_repo = ProductRepo(driver=driver)
     product_create = UseCaseProductCreate(product_repository=product_repo)
     product_create_error, product_create_response = product_create.perform(
@@ -39,7 +44,8 @@ def controller_create_product(driver: DriverContract, product: PresentationProdu
     
     if product_create_error:
         return DomainError(
-            message=product_create_error.message
+            message=product_create_error.message,
+            status_code=product_create_error.status_code
         ), None
     
     return None, PresentationProductCreateResponseDTO(
@@ -55,7 +61,12 @@ def controller_create_product(driver: DriverContract, product: PresentationProdu
     )
     
     
-def controller_update_product(driver: DriverContract, product: PresentationProductUpdateRequestDTO, id: str, user_id: str) -> tuple[DomainError, PresentationProductUpdateResponseDTO]:
+def controller_update_product(
+    driver: DriverContract,
+    product: PresentationProductUpdateRequestDTO,
+    id: str,
+    user_id: str
+) -> tuple[DomainError, PresentationProductUpdateResponseDTO]:
     product_repo = ProductRepo(driver=driver)
     product_update = UsecaseProductUpdate(product_repository=product_repo)
     product_update_error, product_update_response = product_update.perform(
@@ -72,7 +83,8 @@ def controller_update_product(driver: DriverContract, product: PresentationProdu
     
     if product_update_error:
         return DomainError(
-            message=product_update_error.message
+            message=product_update_error.message,
+            status_code=product_update_error.status_code
         ), None
     
     return None, PresentationProductUpdateResponseDTO(
@@ -88,7 +100,10 @@ def controller_update_product(driver: DriverContract, product: PresentationProdu
     )
     
 
-def controller_list_product(driver: DriverContract, product: PresentationProductListRequestDTO) -> tuple[DomainError, PresentationProductListResponseDTO]:
+def controller_list_product(
+    driver: DriverContract,
+    product: PresentationProductListRequestDTO
+) -> tuple[DomainError, PresentationProductListResponseDTO]:
     product_repo = ProductRepo(driver=driver)
     product_list = UsecaseProductList(product_repository=product_repo)
     product_list_error, product_list_response = product_list.perform(
@@ -99,13 +114,17 @@ def controller_list_product(driver: DriverContract, product: PresentationProduct
     
     if product_list_error:
         return DomainError(
-            message=product_list_error.message
+            message=product_list_error.message,
+            status_code=product_list_error.status_code
         ), None
     
     return None, product_list_response
 
 
-def controller_get_product(driver: DriverContract, product: PresentationProductGetRequestDTO) -> tuple[DomainError, PresentationProductGetResponseDTO]:
+def controller_get_product(
+    driver: DriverContract,
+    product: PresentationProductGetRequestDTO
+) -> tuple[DomainError, PresentationProductGetResponseDTO]:
     product_repo = ProductRepo(driver=driver)
     product_get = UsecaseProductGet(product_repository=product_repo)
     product_get_error, product_get_response = product_get.perform(
@@ -116,7 +135,8 @@ def controller_get_product(driver: DriverContract, product: PresentationProductG
     
     if product_get_error:
         return DomainError(
-            message=product_get_error.message
+            message=product_get_error.message,
+            status_code=product_get_error.status_code
         ), None
     
     return None, PresentationProductGetResponseDTO(
@@ -130,3 +150,21 @@ def controller_get_product(driver: DriverContract, product: PresentationProductG
         created_at=product_get_response.created_at,
         updated_at=product_get_response.updated_at
     )
+    
+def controller_delete_product(
+    driver: DriverContract,
+    id: str
+) -> tuple[DomainError, bool]:
+    product_repo = ProductRepo(driver=driver)
+    product_delete = UsecaseProductDelete(product_repository=product_repo)
+    product_delete_error, product_delete_response = product_delete.perform(
+        id=id
+    )
+    
+    if product_delete_error:
+        return DomainError(
+            message=product_delete_error.message,
+            status_code=product_delete_error.status_code
+        ), None
+    
+    return None, product_delete_response

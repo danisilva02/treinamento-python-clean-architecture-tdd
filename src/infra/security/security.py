@@ -2,14 +2,14 @@ from hashlib import md5
 from typing import Optional
 import os
 import jwt
-
+from datetime import timedelta, datetime, timezone
 from src.domain.user.contracts.security import SecurityContract, Claims
 
 JWT_SECRET = os.getenv("JWT_SECRET", "secret")
 
 class Security(SecurityContract):
     def generate_token(self, user_id: str) -> str:
-        return jwt.encode({"user_id": user_id}, JWT_SECRET, algorithm="HS256")
+        return jwt.encode({"user_id": user_id, "exp": datetime.now(timezone.utc) + timedelta(days=1)}, JWT_SECRET, algorithm="HS256")
     
     def verify_token(self, token: str) -> tuple[Optional[dict], Optional[Claims]]:
         try:

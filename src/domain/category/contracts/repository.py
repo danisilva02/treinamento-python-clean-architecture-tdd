@@ -21,3 +21,7 @@ class CategoryRepositoryContract(ABC):
     @abstractmethod
     def get(self, id: str) -> tuple[Optional[DomainError], Optional[CategoryEntity]]:
         pass
+    
+    @abstractmethod
+    def delete(self, id: str) -> tuple[Optional[DomainError], Optional[bool]]:
+        pass

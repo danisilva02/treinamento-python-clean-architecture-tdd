@@ -189,6 +189,11 @@ class ProductRepo(ProductRepositoryContract):
                     message=str(error.message)
                 ), None
                 
+            if not success:
+                return DomainError(
+                    message="Products not found"
+                ), None
+                
             return None, [ProductEntity(**{
                 "id": product.get('id'),
                 "user_id": product.get('user_id'),
@@ -200,6 +205,27 @@ class ProductRepo(ProductRepositoryContract):
                 "created_at": product.get('created_at'),
                 "updated_at": product.get('updated_at'),
             }) for product in success]
+        except Exception as e:
+            return DomainError(
+                message=str(e)
+            ), None
+            
+    def delete(self, id: str) -> tuple[DomainError, bool]:
+        try:
+            sql = """
+                DELETE FROM products WHERE id = :id
+                RETURNING
+                    id AS id
+            """
+            args = {
+                "id": id
+            }
+            error, _ = self.driver.execute(sql, args, returning="one")
+            if error:
+                return DomainError(
+                    message=str(error.message)
+                ), None
+            return None, True
         except Exception as e:
             return DomainError(
                 message=str(e)

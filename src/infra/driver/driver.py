@@ -4,6 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from src.core.domain_error import DomainError
 from typing import Optional, Dict, Any
 from .contract import DriverContract
+from .error_map import map_sqlalchemy_error
 
 JsonDict = Dict[str, Any]
 
@@ -42,9 +43,10 @@ class Driver(DriverContract):
                 
                 return None, {"message": "ok"} 
         except Exception as e:
+            print(e, flush=True)
             if isinstance(e, SQLAlchemyError):
                 return DomainError(
-                    message=f"Driver: {str(e)}"
+                    message=map_sqlalchemy_error(e)
                 ), None
             
             

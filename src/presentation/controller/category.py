@@ -16,6 +16,9 @@ from src.domain.category.dto import CategoryUpdateInputDTO
 # Domain Get
 from src.domain.category.usecase_get import UsecaseCategoryGet
 
+# Domain Delete
+from src.domain.category.usecase_delete import UsecaseCategoryDelete
+
 # Infra
 from src.infra.repository.category.repo import CategoryRepo
 from src.infra.driver.contract import DriverContract
@@ -26,7 +29,11 @@ from src.presentation.contract.category import PresentationCategoryListResponseD
 from src.presentation.contract.category import PresentationCategoryUpdateRequestDTO, PresentationCategoryUpdateResponseDTO
 from src.presentation.contract.category import PresentationCategoryGetRequestDTO, PresentationCategoryGetResponseDTO
 
-def controller_create_category(driver: DriverContract, category: PresentationCategoryCreateRequestDTO, user_id: str) -> tuple[DomainError, PresentationCategoryCreateResponseDTO]:
+def controller_create_category(
+    driver: DriverContract,
+    category: PresentationCategoryCreateRequestDTO,
+    user_id: str
+) -> tuple[DomainError, PresentationCategoryCreateResponseDTO]:
     category_repo = CategoryRepo(driver=driver)
     category_create = UseCaseCategoryCreate(category_repository=category_repo)
     category_create_error, category_create_response = category_create.perform(
@@ -39,7 +46,8 @@ def controller_create_category(driver: DriverContract, category: PresentationCat
     
     if category_create_error:
         return DomainError(
-            message=category_create_error.message
+            message=category_create_error.message,
+            status_code=category_create_error.status_code
         ), None
     
     return None, PresentationCategoryCreateResponseDTO(
@@ -52,7 +60,10 @@ def controller_create_category(driver: DriverContract, category: PresentationCat
     )
 
 
-def controller_get_category(driver: DriverContract, category: PresentationCategoryGetRequestDTO) -> tuple[DomainError, PresentationCategoryGetResponseDTO]:
+def controller_get_category(
+    driver: DriverContract,
+    category: PresentationCategoryGetRequestDTO
+) -> tuple[DomainError, PresentationCategoryGetResponseDTO]:
     category_repo = CategoryRepo(driver=driver)
     category_get = UsecaseCategoryGet(category_repository=category_repo)
     category_get_error, category_get_response = category_get.perform(
@@ -61,7 +72,8 @@ def controller_get_category(driver: DriverContract, category: PresentationCatego
     
     if category_get_error:
         return DomainError(
-            message=category_get_error.message
+            message=category_get_error.message,
+            status_code=category_get_error.status_code
         ), None
     
     return None, PresentationCategoryGetResponseDTO(
@@ -74,7 +86,10 @@ def controller_get_category(driver: DriverContract, category: PresentationCatego
     )
 
 
-def controller_list_category(driver: DriverContract, user_id: str) -> tuple[DomainError, list[PresentationCategoryListResponseDTO]]:
+def controller_list_category(
+    driver: DriverContract,
+    user_id: str
+) -> tuple[DomainError, list[PresentationCategoryListResponseDTO]]:
     category_repo = CategoryRepo(driver=driver)
     category_list = UsecaseCategoryList(category_repository=category_repo)
     category_list_error, category_list_response = category_list.perform(
@@ -85,13 +100,18 @@ def controller_list_category(driver: DriverContract, user_id: str) -> tuple[Doma
     
     if category_list_error:
         return DomainError(
-            message=category_list_error.message
+            message=category_list_error.message,
+            status_code=category_list_error.status_code
         ), None
     
     return None, category_list_response
 
 
-def controller_update_category(driver: DriverContract, category: PresentationCategoryUpdateRequestDTO, id: str) -> tuple[DomainError, PresentationCategoryUpdateResponseDTO]:
+def controller_update_category(
+    driver: DriverContract,
+    category: PresentationCategoryUpdateRequestDTO,
+    id: str
+) -> tuple[DomainError, PresentationCategoryUpdateResponseDTO]:
     category_repo = CategoryRepo(driver=driver)
     category_update = UsecaseCategoryUpdate(category_repository=category_repo)
     category_update_error, category_update_response = category_update.perform(
@@ -104,7 +124,8 @@ def controller_update_category(driver: DriverContract, category: PresentationCat
     
     if category_update_error:
         return DomainError(
-            message=category_update_error.message
+            message=category_update_error.message,
+            status_code=category_update_error.status_code
         ), None
     
     return None, PresentationCategoryUpdateResponseDTO(
@@ -115,3 +136,21 @@ def controller_update_category(driver: DriverContract, category: PresentationCat
         created_at=category_update_response.created_at,
         updated_at=category_update_response.updated_at
     )
+    
+def controller_delete_category(
+    driver: DriverContract,
+    id: str
+) -> tuple[DomainError, bool]:
+    category_repo = CategoryRepo(driver=driver)
+    category_delete = UsecaseCategoryDelete(category_repository=category_repo)
+    category_delete_error, category_delete_response = category_delete.perform(
+        id=id
+    )
+    
+    if category_delete_error:
+        return DomainError(
+            message=category_delete_error.message,
+            status_code=category_delete_error.status_code
+        ), None
+    
+    return None, category_delete_response

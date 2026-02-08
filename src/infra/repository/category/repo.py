@@ -184,3 +184,25 @@ class CategoryRepo(CategoryRepositoryContract):
             return DomainError(
                 message=str(e)
             ), None
+
+   
+    def delete(self, id: str) -> tuple[DomainError | None, bool | None]:
+        try:
+            sql = """
+                DELETE FROM categories WHERE id = :id
+                RETURNING
+                    id AS id
+            """
+            args = {
+                "id": id
+            }
+            error, _ = self.driver.execute(sql, args, returning="one")
+            if error:
+                return DomainError(
+                    message=str(error.message)
+                ), None
+            return None, True
+        except Exception as e:
+            return DomainError(
+                message=str(e)
+            ), None

@@ -20,19 +20,23 @@ class UsecaseCategoryUpdate(UsecaseCategoryUpdateContract):
                     message="Params is required"
                 ), None
                 
-            update_repo_error, update_repo_success = self.category_repository.update(id, name=params.name, status=params.status)
-            if update_repo_error:
+            error_repo, success_repo = self.category_repository.update(
+                id=id,
+                name=params.name,
+                status=params.status
+            )
+            if error_repo:
                 return DomainError(
-                    message="Error category update"
+                    message=error_repo.message
                 ), None
                 
             return None, CategoryUpdateOutputDTO(
-                id=update_repo_success.id,
-                name=update_repo_success.name,
-                status=update_repo_success.status,
-                user_id=update_repo_success.user_id,
-                created_at=update_repo_success.created_at,
-                updated_at=update_repo_success.updated_at
+                id=success_repo.id,
+                name=success_repo.name,
+                status=success_repo.status,
+                user_id=success_repo.user_id,
+                created_at=success_repo.created_at,
+                updated_at=success_repo.updated_at
             )
         except Exception as e:
             return DomainError(

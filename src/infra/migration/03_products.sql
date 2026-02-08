@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS "products" (
   description VARCHAR(255) NOT NULL,
   price       INTEGER      NOT NULL,
   status      VARCHAR(10)  NOT NULL DEFAULT 'active',
-  category_id VARCHAR(255) NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  category_id VARCHAR(255) NOT NULL REFERENCES categories(id),
   created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

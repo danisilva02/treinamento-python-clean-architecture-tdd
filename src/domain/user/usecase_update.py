@@ -22,7 +22,7 @@ class UsecaseUserUpdate(UseCaseUserUpdateContract):
                     message="User not found"
                 ), None
                 
-            if not user.name or not user.email:
+            if not user.name and not user.email:
                 return DomainError(
                     message="Params is required"
                 ), None

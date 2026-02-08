@@ -35,7 +35,7 @@ class PresentationUserMeResponseDTO(BaseModel):
 # Update User
 class PresentationUserUpdateRequestDTO(BaseModel):
     name: str
-    email: str
+    email: str | None = None
     
 class PresentationUserUpdateResponseDTO(BaseModel):
     id: str

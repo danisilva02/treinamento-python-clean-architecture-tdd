@@ -49,7 +49,7 @@ class UserRepo(UserRepoContract):
     def update(self, user: UserEntity) -> list[DomainError, UserEntity]:
         try:
             sql = """
-                UPDATE users SET name = :name, email = :email WHERE id = :id
+                UPDATE users SET name = :name, email = :email, updated_at = NOW() WHERE id = :id
                 RETURNING
                     id AS id,
                     name AS name,
@@ -101,10 +101,15 @@ class UserRepo(UserRepoContract):
             }
             
             error, success = self.driver.execute(sql, args, returning="first")
-
+            
             if error:
                 return DomainError(
                     message=str(error.message)
+                ), None
+                
+            if not success:
+                return DomainError(
+                    message="User not found"
                 ), None
                 
             return None, UserEntity(**{

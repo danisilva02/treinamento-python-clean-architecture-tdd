@@ -29,8 +29,14 @@ class UseCaseUserLogin(UseCaseLoginUserContract):
             )
             
             if error_login:
-                return DomainError(message=error_login.message), None
+                return DomainError(
+                    message=error_login.message,
+                    status_code=401
+                ), None
             
             return None, UserLoginOutputDTO(token=self.security.generate_token(success_login.id))
         except Exception as e:
-            return DomainError(message=str(e)), None
+            return DomainError(
+                message=str(e),
+                status_code=500
+            ), None

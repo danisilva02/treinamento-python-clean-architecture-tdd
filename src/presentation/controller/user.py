@@ -24,11 +24,14 @@ from src.presentation.contract.user import (
     PresentationUserUpdateResponseDTO,
 )
 
-def controller_create_user(driver: DriverContract, user: PresentationUserCreateRequestDTO) -> tuple[DomainError, PresentationUserCreateResponseDTO]:
+def controller_create_user(
+    driver: DriverContract,
+    user: PresentationUserCreateRequestDTO
+) -> tuple[DomainError, PresentationUserCreateResponseDTO]:
     user_repo = UserRepo(driver=driver)
     security_repo = Security()
     usecase_user_create = UseCaseUserCreate(user_repo=user_repo, security=security_repo)
-    user_create_error, user_create_response = usecase_user_create.perform(
+    user_create_error, user_create_success = usecase_user_create.perform(
         user=UserCreateDTO(
             email=user.email,
             name=user.name,
@@ -38,19 +41,24 @@ def controller_create_user(driver: DriverContract, user: PresentationUserCreateR
     
     if user_create_error:
         return DomainError(
-            message=user_create_error.message
+            message=user_create_error.message,
+            status_code=user_create_error.status_code
         ), None
     
     return None, PresentationUserCreateResponseDTO(
-        id=user_create_response.id,
-        email=user_create_response.email,
-        name=user_create_response.name,
-        created_at=user_create_response.created_at,
-        updated_at=user_create_response.updated_at
+        id=user_create_success.id,
+        email=user_create_success.email,
+        name=user_create_success.name,
+        created_at=user_create_success.created_at,
+        updated_at=user_create_success.updated_at
     )
 
  
-def controller_update_user(driver: DriverContract, user: PresentationUserUpdateRequestDTO, user_id: str) -> tuple[DomainError, PresentationUserUpdateResponseDTO]:
+def controller_update_user(
+    driver: DriverContract,
+    user: PresentationUserUpdateRequestDTO,
+    user_id: str
+) -> tuple[DomainError, PresentationUserUpdateResponseDTO]:
     user_repo = UserRepo(driver=driver)
     usecase_user_update = UsecaseUserUpdate(user_repository=user_repo)
     user_update_error, user_update_response = usecase_user_update.perform(
@@ -63,7 +71,8 @@ def controller_update_user(driver: DriverContract, user: PresentationUserUpdateR
 
     if user_update_error:
         return DomainError(
-            message=user_update_error.message
+            message=user_update_error.message,
+            status_code=user_update_error.status_code
         ), None
     
     return None, PresentationUserUpdateResponseDTO(
@@ -75,11 +84,14 @@ def controller_update_user(driver: DriverContract, user: PresentationUserUpdateR
     )
 
 
-def controller_login_user(driver: DriverContract, login_user: PresentationUserLoginRequestDTO) -> tuple[DomainError, PresentationUserLoginResponseDTO]:
+def controller_login_user(
+    driver: DriverContract,
+    login_user: PresentationUserLoginRequestDTO
+) -> tuple[DomainError, PresentationUserLoginResponseDTO]:
     user_repo = UserRepo(driver=driver)
     security_repo = Security()
     usecase_user_login = UseCaseUserLogin(user_repo=user_repo, security=security_repo)
-    user_login_error, user_login_response = usecase_user_login.perform(
+    user_login_error, user_login_success = usecase_user_login.perform(
         user=UserLoginDTO(
             email=login_user.email,
             password=login_user.password,
@@ -88,15 +100,19 @@ def controller_login_user(driver: DriverContract, login_user: PresentationUserLo
     
     if user_login_error:
         return DomainError(
-            message=user_login_error.message
+            message=user_login_error.message,
+            status_code=user_login_error.status_code
         ), None
     
     return None, PresentationUserLoginResponseDTO(
-        token=user_login_response.token,
+        token=user_login_success.token,
     )
 
    
-def controller_me_user(driver: DriverContract, me_user: PresentationUserMeRequestDTO) -> tuple[DomainError, PresentationUserMeResponseDTO]:
+def controller_me_user(
+    driver: DriverContract,
+    me_user: PresentationUserMeRequestDTO
+) -> tuple[DomainError, PresentationUserMeResponseDTO]:
     user_repo = UserRepo(driver=driver)
     usecase_user_me = UseCaseUserMe(user_repo=user_repo)
     user_me_error, user_me_response = usecase_user_me.perform(
@@ -107,7 +123,8 @@ def controller_me_user(driver: DriverContract, me_user: PresentationUserMeReques
     
     if user_me_error:
         return DomainError(
-            message=user_me_error.message
+            message=user_me_error.message,
+            status_code=user_me_error.status_code
         ), None
     
     return None, PresentationUserMeResponseDTO(

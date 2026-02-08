@@ -2,9 +2,20 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .presentation import health
 from .presentation import routers
+from .infra.driver.driver import Driver
+from .infra.migration.migrate import Migrate
 from dotenv import load_dotenv
 import uvicorn
+
 load_dotenv()
+
+def lifespan(app: FastAPI):
+    driver = Driver()
+    app.state.driver = driver
+    migrate = Migrate(driver=driver)
+    migrate.perform()
+    yield
+    return app
 
 app = FastAPI(
     title="Treinamento Python Clean Architecture + TDD",
@@ -12,16 +23,17 @@ app = FastAPI(
     summary="API para o Treinamento Python Clean Architecture + TDD 🚀",
     version="0.0.1",
     root_path="/api",
-    terms_of_service="https://www.google.com/",
+    terms_of_service="https://areteacademy.com.br",
     contact={
-        "name": "Daniel Silva",
-        "url": "https://www.google.com/",
-        "email": "daniel.silvamiranda02@gmail.com",
+        "name": "Arete Academy",
+        "url": "https://areteacademy.com.br",
+        "email": "areteacademy.dev@gmail.com",
     },
     license_info={
-        "name": "Apache 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
+        "name": "MIT License",
+        "url": "https://opensource.org/licenses/MIT",
     },
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -33,7 +45,7 @@ app.add_middleware(
 )
 
 app.include_router(health.router, prefix="/health", tags=["Health"])
-app.include_router(routers.router, prefix="/user")
+app.include_router(routers.router)
 
 if __name__ == "__main__":
-    uvicorn.run(app=app, host="0.0.0.0", port=5000)
+    uvicorn.run(app=app, host="0.0.0.0", port=80)

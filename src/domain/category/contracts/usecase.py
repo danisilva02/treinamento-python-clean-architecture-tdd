@@ -28,3 +28,8 @@ class UsecaseCategoryGetContract(ABC):
     @abstractmethod
     def perform(self, id: str) -> tuple[DomainError, UsecaseCategoryGetOutputDTO]:
         pass
+    
+class UsecaseCategoryDeleteContract(ABC):
+    @abstractmethod
+    def perform(self, id: str) -> tuple[DomainError, bool]:
+        pass
