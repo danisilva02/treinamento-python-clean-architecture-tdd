@@ -4,15 +4,26 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "5000:5000"
-    env_file:
-      - .env
+    restart: unless-stopped
+    networks:
+      - proxy
     environment:
+      APP_PORT: ${APP_PORT}
+      DOMAIN: ${DOMAIN}
       DB_HOST: postgres
       DATABASE_URL: ${DATABASE_URL}
       DATABASE_MIN_CONN: ${DATABASE_MIN_CONN}
       DATABASE_MAX_CONN: ${DATABASE_MAX_CONN}
       JWT_SECRET: ${JWT_SECRET}
-    volumes:
-      - ./src:/app/src
+    labels:
+      - "traefik.enable=true"
+
+      # Router API (NOME ÚNICO)
+      - "traefik.http.routers.trip.rule=Host(`api.localhost`) || Host(`api.${DOMAIN}`)"
+      - "traefik.http.routers.api.entrypoints=web"
+
+      # Service API
+      - "traefik.http.services.api.loadbalancer.server.port=${APP_PORT}"
+networks:
+  proxy:
+    external: true
